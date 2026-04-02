@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Практическая работа №8 — Сетевые запросы и асинхронность</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <header class="header">
+    <h1>GitHub Spy — Поиск разработчиков</h1>
+  </header>
+
+  <main class="main-content">
+
+    <!-- Форма поиска -->
+    <section id="search-section" class="section">
+      <form id="search-form">
+        <input type="text" id="username" placeholder="Введите GitHub username" required />
+        <button type="submit" id="searchBtn">Найти</button>
+      </form>
+      <div id="error" class="error hidden"></div>
+    </section>
+
+    <!-- Loader -->
+    <div class="loader hidden" id="loader">Загрузка...</div>
+
+    <!-- Профиль -->
+    <section id="profile-section" class="section hidden">
+      <div id="profile" class="profile-card">
+        <!-- Здесь будет карточка профиля -->
+      </div>
+    </section>
+
+    <!-- Репозитории -->
+    <section id="repos-section" class="section hidden">
+      <h2>Последние репозитории</h2>
+      <ul id="repos" class="repo-list">
+        <!-- Здесь будут репозитории -->
+      </ul>
+    </section>
+
+    <!-- История поиска -->
+    <section id="history-section" class="section hidden">
+      <h2>История поиска</h2>
+      <div id="history" class="history-tags">
+        <!-- Здесь будут теги истории -->
+      </div>
+      <button id="clearHistory" class="btn-clear">Очистить историю</button>
+    </section>
+
+  </main>
+
+  <footer class="footer">
+    <p>© 2026 Курс Frontend-разработки</p>
+  </footer>
+
+  <script src="script.js"></script>
+</body>
+</html>

@@ -1,0 +1,155 @@
+/* Базовые стили */
+
+body {
+  font-family: Arial, sans-serif;
+  margin: 0; padding: 0;
+  background: #f0f2f5;
+  color: #222;
+}
+
+.header, .footer {
+  background: #24292e;
+  color: white;
+  text-align: center;
+  padding: 1rem;
+}
+
+.main-content {
+  max-width: 700px;
+  margin: 2rem auto;
+  padding: 0 1rem;
+}
+
+.section {
+  background: white;
+  padding: 1rem 1.5rem;
+  margin-bottom: 1.5rem;
+  border-radius: 6px;
+  box-shadow: 0 0 8px rgba(0,0,0,0.1);
+}
+
+form {
+  display: flex;
+  gap: 0.5rem;
+}
+
+input[type="text"] {
+  flex: 1;
+  padding: 0.5rem;
+  font-size: 1rem;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+
+button {
+  padding: 0.5rem 1rem;
+  background: #2ea44f;
+  border: none;
+  color: white;
+  font-weight: bold;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+button:disabled {
+  background: #94d3a2;
+  cursor: not-allowed;
+}
+
+button:hover:not(:disabled) {
+  background: #22863a;
+}
+
+.error {
+  color: #d73a49;
+  margin-top: 0.5rem;
+}
+
+.hidden {
+  display: none;
+}
+
+/* Профиль */
+
+.profile-card {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+}
+
+.profile-card img {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+}
+
+.profile-info h2 {
+  margin: 0 0 0.3rem 0;
+}
+
+.profile-info p {
+  margin: 0.2rem 0;
+  color: #555;
+}
+
+/* Репозитории */
+
+.repo-list {
+  list-style: none;
+  padding-left: 0;
+}
+
+.repo-list li {
+  padding: 0.5rem 0;
+  border-bottom: 1px solid #eee;
+}
+
+.repo-list li a {
+  color: #0366d6;
+  font-weight: bold;
+  text-decoration: none;
+}
+
+.repo-list li a:hover {
+  text-decoration: underline;
+}
+
+/* История */
+
+.history-tags {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.history-tags button {
+  background: #e1e4e8;
+  color: #0366d6;
+  border: none;
+  border-radius: 3px;
+  padding: 0.3rem 0.6rem;
+  cursor: pointer;
+  font-size: 0.9rem;
+}
+
+.history-tags button:hover {
+  background: #d1d5da;
+}
+
+.btn-clear {
+  margin-top: 0.5rem;
+  background: #d73a49;
+}
+
+.btn-clear:hover {
+  background: #b31d28;
+}
+
+/* Loader */
+
+.loader {
+  text-align: center;
+  font-weight: bold;
+  font-size: 1.2rem;
+}
