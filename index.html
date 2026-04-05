@@ -1,59 +1,72 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="ru">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>GitHub Spy — Поиск разработчиков</title>
-    <link rel="stylesheet" href="style.css">
-</head>
-<body>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
     <header class="header">
-        <h1>Практическая работа №8 — Сетевые запросы и асинхронность</h1>
-        <p>GitHub Spy — Поиск разработчиков</p>
+      <h1>Практическая работа №8 — Сетевые запросы и асинхронность</h1>
+      <p>GitHub Spy — Поиск разработчиков</p>
     </header>
 
     <main class="main-content">
-        <section class="section search-section">
-            <form id="search-form">
-                <input type="text" id="username" placeholder="Введите username GitHub" maxlength="256" required autocomplete="off">
-                <button type="submit" id="searchBtn">Найти</button>
-            </form>
-            <ul id="suggestions-container" class="suggestions-list hidden"></ul>
-            <div id="error" class="error hidden"></div>
-            <div id="loader" class="loader hidden">Загрузка...</div>
-        </section>
+      <section class="section search-section">
+        <form id="search-form">
+          <input
+            type="text"
+            id="username"
+            placeholder="Введите username GitHub"
+            maxlength="256"
+            required
+            autocomplete="off"
+          />
+          <button type="submit" id="searchBtn">Найти</button>
+        </form>
+        <ul id="suggestions-container" class="suggestions-list hidden"></ul>
+        <div id="error" class="error hidden"></div>
+        <div id="loader" class="loader hidden"></div>
+      </section>
 
-        <section id="profile-section" class="section hidden">
-            <div id="profile" class="profile-card"></div>
-        </section>
+      <section id="profile-section" class="section hidden">
+        <div id="profile" class="profile-card"></div>
+      </section>
 
-        <section id="repos-section" class="section hidden">
-            <h2>Последние репозитории</h2>
-            <div id="repos-controls" class="repos-controls">
-                <label class="format-toggle">
-                    <span>Формат чисел:</span>
-                    <select id="number-format">
-                        <option value="full">Полный (1 245)</option>
-                        <option value="short">Сокращённый (1.2k)</option>
-                    </select>
-                </label>
-            </div>
-            <ul id="repos" class="repo-list"></ul>
-            <button id="load-more-btn" class="load-more-btn hidden">Загрузить ещё репозитории</button>
-        </section>
+      <section id="repos-section" class="section hidden">
+        <h2>Последние репозитории</h2>
+        <div id="repos-controls" class="repos-controls">
+          <label class="per-page-select">
+            <span>Репозиториев на странице:</span>
+            <select id="per-page">
+              <option value="5" selected>5</option>
+              <option value="10">10</option>
+              <option value="20">20</option>
+              <option value="50">50</option>
+              <option value="100">100</option>
+            </select>
+          </label>
+        </div>
+        <ul id="repos" class="repo-list"></ul>
+        <div id="pagination" class="pagination hidden"></div>
+      </section>
 
-        <section id="history-section" class="section hidden">
-            <h2>История поиска</h2>
-            <div id="history" class="history-tags"></div>
-            <button id="clearHistory" class="btn-clear">Очистить историю</button>
-        </section>
+      <section id="history-section" class="section hidden">
+        <h2>История поиска</h2>
+        <div id="history" class="history-tags"></div>
+        <button id="clearHistory" class="btn-clear">Очистить историю</button>
+      </section>
     </main>
 
     <footer class="footer">
-        <p>© 2026 Курс Frontend-разработки</p>
+      <p>© 2026 Курс Frontend-разработки</p>
     </footer>
 
+    <button id="scroll-to-top" class="scroll-to-top hidden" title="Вверх">
+      ↑
+    </button>
+
     <script src="script.js"></script>
-    <script src="tests.js"></script>
-</body>
+  </body>
 </html>
