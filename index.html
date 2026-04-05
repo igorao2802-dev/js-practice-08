@@ -7,10 +7,13 @@
     <link rel="stylesheet" href="style.css" />
   </head>
   <body>
+
     <header class="header">
       <h1>Практическая работа №8 — Сетевые запросы и асинхронность</h1>
       <p>GitHub Spy — Поиск разработчиков</p>
     </header>
+<body>
+<body>
 
     <main class="main-content">
       <section class="section search-section">
@@ -27,7 +30,7 @@
         </form>
         <ul id="suggestions-container" class="suggestions-list hidden"></ul>
         <div id="error" class="error hidden"></div>
-        <div id="loader" class="loader hidden"></div>
+        <div id="loader" class="loader hidden">⏳ Загрузка...</div>
       </section>
 
       <section id="profile-section" class="section hidden">
@@ -45,6 +48,19 @@
               <option value="20">20</option>
               <option value="50">50</option>
               <option value="100">100</option>
+            </select>
+          </label>
+          <label class="sort-select">
+            <span>Сортировка:</span>
+            <select id="sort-by">
+              <option value="updated_desc" selected>
+                По дате обновления ↓
+              </option>
+              <option value="updated_asc">По дате обновления ↑</option>
+              <option value="stars_desc">По популярности ↓</option>
+              <option value="stars_asc">По популярности ↑</option>
+              <option value="name_asc">По имени А-Я</option>
+              <option value="name_desc">По имени Я-А</option>
             </select>
           </label>
         </div>
@@ -66,7 +82,7 @@
     <button id="scroll-to-top" class="scroll-to-top hidden" title="Вверх">
       ↑
     </button>
+<script src="script.js"></script>
 
-    <script src="script.js"></script>
   </body>
 </html>

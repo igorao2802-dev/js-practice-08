@@ -1,4 +1,4 @@
-"use strict";
+("use strict");
 
 // --- Состояние приложения ---
 const appState = {
@@ -13,7 +13,7 @@ const appState = {
 
 const PAGES_PER_WINDOW = 5;
 
-// --- DOM-элементы (ИСПРАВЛЕНЫ ПРОБЕЛЫ В СЕЛЕКТОРАХ) ---
+// --- DOM-элементы ---
 const searchForm = document.querySelector("#search-form");
 const usernameInput = document.querySelector("#username");
 const searchBtn = document.querySelector("#searchBtn");
@@ -30,11 +30,13 @@ const suggestionsContainer = document.querySelector("#suggestions-container");
 const perPageSelect = document.querySelector("#per-page");
 const paginationDiv = document.querySelector("#pagination");
 const scrollToTopBtn = document.querySelector("#scroll-to-top");
+const sortBySelect = document.querySelector("#sort-by");
 
-// --- Утилиты управления UI ---
+// --- Утилиты ---
 function showLoader() {
   loader.classList.remove("hidden");
 }
+
 function hideLoader() {
   loader.classList.add("hidden");
 }
@@ -70,7 +72,7 @@ function debounce(func, delay) {
   };
 }
 
-// --- Utility: минимальная задержка для UX ---
+// --- Задержка для UX ---
 function delay(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
@@ -147,19 +149,27 @@ async function getUser(username) {
   }
 }
 
-// Запрос репозиториев с параметрами page и per_page
-async function getRepos(username, page = 1, perPage = 5) {
+async function getRepos(
+  username,
+  page = 1,
+  perPage = 5,
+  sortBy = "updated_desc",
+) {
   try {
+    const [sortField, sortOrder] = sortBy.split("_");
     const params = new URLSearchParams({
-      sort: "updated",
+      sort: sortField,
+      direction: sortOrder,
       per_page: perPage,
       page: page,
     });
+
     const response = await fetch(
       `https://api.github.com/users/${encodeURIComponent(username)}/repos?${params}`,
     );
-    if (!response.ok)
+    if (!response.ok) {
       throw new Error(`Не удалось загрузить репозитории: ${response.status}`);
+    }
     return await response.json();
   } catch (error) {
     if (error.name === "TypeError")
@@ -177,9 +187,7 @@ async function getSuggestions(query) {
     const params = new URLSearchParams({ q: query, per_page: 5 });
     const response = await fetch(
       `https://api.github.com/search/users?${params}`,
-      {
-        signal: appState.abortController.signal,
-      },
+      { signal: appState.abortController.signal },
     );
     if (!response.ok) return [];
     const data = await response.json();
@@ -190,18 +198,20 @@ async function getSuggestions(query) {
   }
 }
 
-// --- Skeleton Loader (забавная анимация вместо "Загрузка...") ---
+// --- Skeleton Loader ---
 function showSkeletonLoader() {
   clearContainer(reposList);
-
-  // ПОЧЕМУ снимаем hidden? — Секция репозиториев должна быть видима,
-  // чтобы пользователь видел скелетоны во время загрузки.
   reposSection.classList.remove("hidden");
+
+  const loadingText = document.createElement("div");
+  loadingText.className = "loading-text";
+  loadingText.textContent = "⏳ Загрузка...";
+  loadingText.style.cssText =
+    "text-align: center; padding: 20px; color: #586069; font-size: 1.1rem; font-weight: 500;";
+  reposList.appendChild(loadingText);
 
   const skeletonContainer = document.createElement("div");
   skeletonContainer.className = "skeleton-container";
-
-  // Показываем 5 скелетонов (или меньше, если perPage меньше)
   const itemsCount = Math.min(parseInt(appState.perPage) || 5, 5);
 
   for (let i = 0; i < itemsCount; i++) {
@@ -220,17 +230,12 @@ function showSkeletonLoader() {
     descLine1.className = "skeleton-line desc";
     skeletonItem.appendChild(descLine1);
 
-    const descLine2 = document.createElement("div");
-    descLine2.className = "skeleton-line desc";
-    skeletonItem.appendChild(descLine2);
-
     skeletonContainer.appendChild(skeletonItem);
   }
-
   reposList.appendChild(skeletonContainer);
 }
 
-// --- Отрисовка данных ---
+// --- Отрисовка ---
 function renderProfile(data) {
   clearContainer(profileDiv);
   const card = document.createElement("div");
@@ -254,10 +259,8 @@ function renderProfile(data) {
     info.appendChild(bioEl);
   }
 
-  const reposCountEl = document.createElement("span");
-  // ✅ СОХРАНЯЕМ ОБЩЕЕ ЧИСЛО РЕПОЗИТОРИЕВ В СОСТОЯНИЕ ПРИЛОЖЕНИЯ
   appState.totalRepos = data.public_repos || 0;
-
+  const reposCountEl = document.createElement("span");
   reposCountEl.textContent = `Публичных репозиториев: ${appState.totalRepos}`;
   info.appendChild(reposCountEl);
 
@@ -305,17 +308,43 @@ function renderRepos(repos, append = false) {
 
     const stars = document.createElement("span");
     stars.textContent = `⭐ ${repo.stargazers_count}`;
+    stars.title = "Количество звёзд (popularity)";
     stats.appendChild(stars);
 
     const forks = document.createElement("span");
     forks.textContent = `🍴 ${repo.forks_count}`;
+    forks.title = "Количество форков (forks)";
     stats.appendChild(forks);
 
     if (repo.language) {
       const lang = document.createElement("span");
       lang.textContent = `💻 ${repo.language}`;
+      lang.title = `Язык программирования: ${repo.language}`;
+      stats.appendChild(lang);
+    } else {
+      const lang = document.createElement("span");
+      lang.textContent = "💻 Не указан";
+      lang.title = "Язык программирования не указан";
       stats.appendChild(lang);
     }
+
+    const updated = document.createElement("span");
+    const updateDate = new Date(repo.updated_at);
+    const shortDate = updateDate.toLocaleDateString("ru-RU", {
+      day: "2-digit",
+      month: "2-digit",
+      year: "2-digit",
+    });
+    updated.textContent = `📅 ${shortDate}`;
+    updated.title = `Последнее обновление: ${updateDate.toLocaleDateString(
+      "ru-RU",
+      {
+        day: "2-digit",
+        month: "long",
+        year: "numeric",
+      },
+    )}`;
+    stats.appendChild(updated);
 
     li.appendChild(stats);
     reposList.appendChild(li);
@@ -324,15 +353,17 @@ function renderRepos(repos, append = false) {
   if (!append) reposSection.classList.remove("hidden");
 }
 
-// --- Scroll to Top Button ---
+// --- Scroll to Top ---
 function initScrollToTop() {
   if (!scrollToTopBtn) return;
+
   scrollToTopBtn.addEventListener("click", () => {
     window.scrollTo({ top: 0, behavior: "smooth" });
   });
+
   window.addEventListener("scroll", () => {
-    const showThreshold = window.innerHeight;
-    if (window.pageYOffset > showThreshold / 4) {
+    const showThreshold = window.innerHeight / 4;
+    if (window.pageYOffset > showThreshold) {
       scrollToTopBtn.classList.remove("hidden");
     } else {
       scrollToTopBtn.classList.add("hidden");
@@ -340,9 +371,7 @@ function initScrollToTop() {
   });
 }
 
-// ==========================================
-// ✅ ИСПРАВЛЕНИЕ: ДОБАВЛЕНА ФУНКЦИЯ createPageButton
-// ==========================================
+// --- Создание кнопки пагинации ---
 function createPageButton(pageNum) {
   const btn = document.createElement("button");
   btn.textContent = pageNum;
@@ -354,43 +383,151 @@ function createPageButton(pageNum) {
 
   btn.addEventListener("click", () => {
     appState.currentPage = pageNum;
-    // ✅ Теперь при клике вызывает функцию загрузки
     fetchAndRenderRepos();
   });
 
   return btn;
 }
 
+// --- Пагинация ---
+function renderPagination(totalPages) {
+  clearContainer(paginationDiv);
+
+  if (totalPages <= 1) {
+    paginationDiv.classList.add("hidden");
+    return;
+  }
+
+  paginationDiv.classList.remove("hidden");
+
+  if (totalPages <= 10) {
+    if (appState.currentPage > 1) {
+      const prevBtn = document.createElement("button");
+      prevBtn.className = "nav-btn prev";
+      prevBtn.innerHTML = "<span>← Назад</span>";
+      prevBtn.addEventListener("click", () => {
+        if (appState.currentPage > 1) {
+          appState.currentPage--;
+          fetchAndRenderRepos();
+        }
+      });
+      paginationDiv.appendChild(prevBtn);
+    }
+
+    for (let i = 1; i <= totalPages; i++) {
+      paginationDiv.appendChild(createPageButton(i));
+    }
+
+    if (appState.currentPage < totalPages) {
+      const nextBtn = document.createElement("button");
+      nextBtn.className = "nav-btn next";
+      nextBtn.innerHTML = "<span>Вперёд →</span>";
+      nextBtn.addEventListener("click", () => {
+        if (appState.currentPage < totalPages) {
+          appState.currentPage++;
+          fetchAndRenderRepos();
+        }
+      });
+      paginationDiv.appendChild(nextBtn);
+    }
+    return;
+  }
+
+  if (appState.currentPage < appState.windowStart) {
+    appState.windowStart = appState.currentPage;
+  } else if (appState.currentPage >= appState.windowStart + PAGES_PER_WINDOW) {
+    appState.windowStart = appState.currentPage - PAGES_PER_WINDOW + 1;
+  }
+
+  if (appState.windowStart < 1) appState.windowStart = 1;
+  if (appState.windowStart + PAGES_PER_WINDOW - 1 > totalPages) {
+    appState.windowStart = Math.max(1, totalPages - PAGES_PER_WINDOW + 1);
+  }
+
+  const windowEnd = Math.min(
+    appState.windowStart + PAGES_PER_WINDOW - 1,
+    totalPages,
+  );
+
+  if (appState.windowStart > 1) {
+    const prevBtn = document.createElement("button");
+    prevBtn.className = "nav-btn prev";
+    prevBtn.innerHTML = "<span>← Назад</span>";
+    prevBtn.addEventListener("click", () => {
+      appState.windowStart = Math.max(
+        1,
+        appState.windowStart - PAGES_PER_WINDOW,
+      );
+      appState.currentPage = appState.windowStart;
+      fetchAndRenderRepos();
+    });
+    paginationDiv.appendChild(prevBtn);
+  }
+
+  for (let i = appState.windowStart; i <= windowEnd; i++) {
+    paginationDiv.appendChild(createPageButton(i));
+  }
+
+  if (windowEnd < totalPages) {
+    const ellipsis = document.createElement("button");
+    ellipsis.textContent = "...";
+    ellipsis.className = "ellipsis";
+    ellipsis.disabled = true;
+    paginationDiv.appendChild(ellipsis);
+
+    paginationDiv.appendChild(createPageButton(totalPages));
+
+    const nextBtn = document.createElement("button");
+    nextBtn.className = "nav-btn next";
+    nextBtn.innerHTML = "<span>Вперёд →</span>";
+    nextBtn.addEventListener("click", () => {
+      const newWindowStart = appState.windowStart + PAGES_PER_WINDOW;
+      if (newWindowStart <= totalPages) {
+        appState.windowStart = newWindowStart;
+        appState.currentPage = appState.windowStart;
+        fetchAndRenderRepos();
+      }
+    });
+    paginationDiv.appendChild(nextBtn);
+  }
+}
+
+// --- Основная функция постраничной загрузки репозиториев ---
 async function fetchAndRenderRepos() {
   if (appState.isFetching) return;
   appState.isFetching = true;
 
+  // Блокируем интерфейс на время запроса
   searchBtn.disabled = true;
   perPageSelect.disabled = true;
+  if (sortBySelect) sortBySelect.disabled = true;
+
   showSkeletonLoader();
   showLoader();
 
   try {
-    // ПОЧЕМУ Promise.all с delay? — Гарантируем минимальное время показа скелетона,
-    // чтобы анимация была заметна пользователю при переключении страниц.
+    // Теперь perPage всегда число, так как в HTML нет опции "all"
+    const perPageValue = parseInt(appState.perPage);
+
     const [reposData] = await Promise.all([
       getRepos(
         appState.currentUsername,
         appState.currentPage,
-        parseInt(appState.perPage),
+        perPageValue,
+        sortBySelect ? sortBySelect.value : "updated_desc",
       ),
-      delay(500), // Чуть меньше для пагинации (500мс)
+      delay(700),
     ]);
 
     renderRepos(reposData, false);
 
-    const perPage = parseInt(appState.perPage);
-    const hasMore = reposData.length === perPage;
-    const totalPages = hasMore
-      ? appState.currentPage + 5
-      : appState.currentPage;
+    // Рассчитываем точное количество страниц
+    const totalPages =
+      appState.totalRepos > 0
+        ? Math.ceil(appState.totalRepos / perPageValue)
+        : 1;
 
-    renderPagination(Math.max(appState.currentPage, totalPages));
+    renderPagination(totalPages);
     reposSection.scrollIntoView({ behavior: "smooth", block: "start" });
   } catch (error) {
     showError(error.message || "Ошибка загрузки репозиториев");
@@ -399,89 +536,37 @@ async function fetchAndRenderRepos() {
     hideLoader();
     searchBtn.disabled = false;
     perPageSelect.disabled = false;
+    if (sortBySelect) sortBySelect.disabled = false;
     appState.isFetching = false;
   }
 }
 
-// --- Пагинация ---
-function renderPagination(totalPages) {
-  clearContainer(paginationDiv);
-
-  // 1. Рассчитываем точное количество страниц на основе данных из профиля
-  const perPage =
-    appState.perPage === "all"
-      ? appState.totalRepos
-      : parseInt(appState.perPage);
-  const finalTotalPages =
-    appState.totalRepos > 0 ? Math.ceil(appState.totalRepos / perPage) : 0;
-
-  // Если страниц 0 или 1, пагинация не нужна
-  if (finalTotalPages <= 1) {
-    paginationDiv.classList.add("hidden");
-    return;
-  }
-  paginationDiv.classList.remove("hidden");
-
-  // 2. Вычисляем границы текущего "окна" из 5 кнопок
-  // Логика: (страница - 1) / 5 округляем вниз, умножаем на 5 и прибавляем 1
-  // Пример: стр 1 -> начало 1. Стр 6 -> начало 6. Стр 12 -> начало 11.
-  const windowStart =
-    Math.floor((appState.currentPage - 1) / PAGES_PER_WINDOW) *
-      PAGES_PER_WINDOW +
-    1;
-  const windowEnd = Math.min(
-    windowStart + PAGES_PER_WINDOW - 1,
-    finalTotalPages,
-  );
-
-  // 3. Кнопка "Назад" (Переход на 5 страниц назад)
-  // Появляется, если мы не в самом первом блоке
-  if (windowStart > 1) {
-    const prevBtn = document.createElement("button");
-    prevBtn.className = "nav-btn prev";
-    prevBtn.innerHTML = "<span>← Назад</span>";
-    prevBtn.addEventListener("click", () => {
-      // Прыгаем на начало предыдущего блока (например, со стр 6 на стр 1)
-      appState.currentPage = windowStart - PAGES_PER_WINDOW;
-      fetchAndRenderRepos();
-    });
-    paginationDiv.appendChild(prevBtn);
-  }
-
-  // 4. Рисуем номера страниц внутри текущего окна (1, 2, 3, 4, 5 или 6, 7, 8, 9, 10)
-  for (let i = windowStart; i <= windowEnd; i++) {
-    paginationDiv.appendChild(createPageButton(i));
-  }
-
-  // 5. Кнопка "Вперёд" (Переход на 5 страниц вперёд)
-  // Появляется, если есть страницы после текущего блока
-  if (windowEnd < finalTotalPages) {
-    // Многоточие и кнопка последней страницы (для быстрого перехода в конец)
-    const ellipsis = document.createElement("button");
-    ellipsis.textContent = "...";
-    ellipsis.className = "ellipsis";
-    ellipsis.disabled = true;
-    paginationDiv.appendChild(ellipsis);
-
-    paginationDiv.appendChild(createPageButton(finalTotalPages));
-
-    // Сама кнопка Вперёд
-    const nextBtn = document.createElement("button");
-    nextBtn.className = "nav-btn next";
-    nextBtn.innerHTML = "<span>Вперёд →</span>";
-    nextBtn.addEventListener("click", () => {
-      // Прыгаем на начало следующего блока (например, со стр 1 на стр 6)
-      const nextPage = windowStart + PAGES_PER_WINDOW;
-      if (nextPage <= finalTotalPages) {
-        appState.currentPage = nextPage;
-        fetchAndRenderRepos();
-      }
-    });
-    paginationDiv.appendChild(nextBtn);
-  }
+function updateReposDisplay() {
+  appState.currentPage = 1;
+  appState.windowStart = 1;
+  fetchAndRenderRepos();
 }
 
-// --- Обработчики событий ---
+function renderSuggestions(users) {
+  clearContainer(suggestionsContainer);
+  if (!users || users.length === 0) {
+    hideSuggestions();
+    return;
+  }
+  users.forEach((user) => {
+    const li = document.createElement("li");
+    li.textContent = user.login;
+    li.addEventListener("click", () => {
+      usernameInput.value = user.login;
+      hideSuggestions();
+      searchForm.dispatchEvent(new Event("submit"));
+    });
+    suggestionsContainer.appendChild(li);
+  });
+  suggestionsContainer.classList.remove("hidden");
+}
+
+// --- Обработчики ---
 searchForm.addEventListener("submit", async (event) => {
   event.preventDefault();
   hideSuggestions();
@@ -509,18 +594,19 @@ searchForm.addEventListener("submit", async (event) => {
   showLoader();
 
   try {
-    // ПОЧЕМУ Promise.all с delay? — Гарантируем минимальное время показа скелетона (700мс),
-    // чтобы пользователь успел увидеть анимацию загрузки, даже если API ответил мгновенно.
     const [userData, reposData] = await Promise.all([
       getUser(appState.currentUsername),
-      getRepos(appState.currentUsername, 1, parseInt(appState.perPage)),
-      delay(700), // Минимальная задержка для UX
+      getRepos(
+        appState.currentUsername,
+        1,
+        parseInt(appState.perPage),
+        sortBySelect ? sortBySelect.value : "updated_desc",
+      ),
+      delay(700),
     ]);
-
     renderProfile(userData);
     renderRepos(reposData, false);
 
-    // Рассчитываем точное количество страниц
     const perPage = parseInt(appState.perPage);
     const totalPages = Math.ceil(userData.public_repos / perPage);
     renderPagination(totalPages);
@@ -535,11 +621,18 @@ searchForm.addEventListener("submit", async (event) => {
   }
 });
 
-perPageSelect.addEventListener("change", () => {
-  appState.perPage = perPageSelect.value;
-  appState.currentPage = 1;
-  fetchAndRenderRepos(); // Перезагрузка при смене кол-ва на странице
+perPageSelect.addEventListener("change", (event) => {
+  appState.perPage = event.target.value;
+  updateReposDisplay();
 });
+
+if (sortBySelect) {
+  sortBySelect.addEventListener("change", () => {
+    appState.currentPage = 1;
+    appState.windowStart = 1;
+    fetchAndRenderRepos();
+  });
+}
 
 usernameInput.addEventListener(
   "input",
@@ -574,4 +667,8 @@ document.addEventListener("DOMContentLoaded", () => {
   appState.perPage = perPageSelect.value;
   appState.windowStart = 1;
   initScrollToTop();
+
+  if (sortBySelect) {
+    sortBySelect.value = "updated_desc";
+  }
 });
