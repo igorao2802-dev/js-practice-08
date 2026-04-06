@@ -13,7 +13,7 @@ const appState = {
 
 const PAGES_PER_WINDOW = 5;
 
-// --- DOM-элементы (исправлены пробелы в селекторах) ---
+// --- DOM-элементы ---
 const searchForm = document.querySelector("#search-form");
 const usernameInput = document.querySelector("#username");
 const searchBtn = document.querySelector("#searchBtn");
@@ -84,7 +84,7 @@ function normalizeUsername(username) {
 }
 
 // ==========================================
-// 💾 ЛОГИКА СОХРАНЕНИЯ/ЗАГРУЗКИ НАСТРОЕК (НОВОЕ)
+// 💾 ЛОГИКА СОХРАНЕНИЯ/ЗАГРУЗКИ НАСТРОЕК 
 // ==========================================
 const PREF_PER_PAGE_KEY = "gh_per_page";
 const PREF_SORT_BY_KEY = "gh_sort_by";
