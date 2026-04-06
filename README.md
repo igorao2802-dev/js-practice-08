@@ -51,7 +51,7 @@
    git clone https://github.com/ваш-username/js-practice-08.git
    cd js-practice-08
    ```
-````
+
 
 2. **Откройте проект в VS Code:**
 
